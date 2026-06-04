@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
+import { CRMProvider } from "@/hooks/use-contacts";
 
 export const metadata: Metadata = {
   title: "Personal CRM Monitor",
@@ -19,8 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased bg-background text-foreground`}>
-        {children}
+      <body className="antialiased bg-background text-foreground">
+        <CRMProvider>
+          {children}
+        </CRMProvider>
       </body>
     </html>
   );

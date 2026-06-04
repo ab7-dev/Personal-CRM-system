@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { CRMProvider, useCRM } from '@/hooks/use-contacts';
+import { useCRM } from '@/hooks/use-contacts';
 import Sidebar from '@/components/sidebar';
 import { Search, X, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -121,8 +121,6 @@ function AuthenticatedLayoutContent({ children }: { children: React.ReactNode })
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <CRMProvider>
-      <AuthenticatedLayoutContent>{children}</AuthenticatedLayoutContent>
-    </CRMProvider>
+    <AuthenticatedLayoutContent>{children}</AuthenticatedLayoutContent>
   );
 }
