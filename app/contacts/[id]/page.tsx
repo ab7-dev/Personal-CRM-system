@@ -70,12 +70,12 @@ export default function ContactDetailPage() {
 
   // Filter items for this contact
   const contactInteractions = interactions
-    .filter(i => i.contactId === id)
+    .filter(i => i.contact_id === id)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const contactReminders = reminders
-    .filter(r => r.contactId === id)
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    .filter(r => r.contact_id === id)
+    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
 
   // Form Submissions
   const handleEditSubmit = (data: ContactFormValues) => {
@@ -85,7 +85,7 @@ export default function ContactDetailPage() {
 
   const handleInteractionSubmit = (data: InteractionFormValues) => {
     addInteraction({
-      contactId: id,
+      contact_id: id,
       ...data
     });
     setInteractionFormOpen(false);
@@ -93,8 +93,9 @@ export default function ContactDetailPage() {
 
   const handleReminderSubmit = (data: ReminderFormValues) => {
     addReminder({
-      contactId: id,
-      ...data
+      contact_id: id,
+      title: data.title,
+      due_date: data.dueDate,
     });
     setReminderFormOpen(false);
   };
@@ -172,11 +173,11 @@ export default function ContactDetailPage() {
           <div className="grid grid-cols-2 gap-4 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 text-xs text-slate-500 shrink-0 justify-items-start">
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Last Interaction</p>
-              <p className="text-slate-800 font-semibold mt-0.5">{formatDate(contact.lastContactedAt)}</p>
+              <p className="text-slate-800 font-semibold mt-0.5">{formatDate(contact.last_contacted_at)}</p>
             </div>
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Added On</p>
-              <p className="text-slate-800 font-semibold mt-0.5">{formatDate(contact.createdAt)}</p>
+              <p className="text-slate-800 font-semibold mt-0.5">{formatDate(contact.created_at)}</p>
             </div>
           </div>
         </div>
@@ -265,7 +266,7 @@ export default function ContactDetailPage() {
               ) : (
                 <div className="divide-y divide-slate-100">
                   {contactReminders.map((rem) => {
-                    const isOverdue = !rem.completed && new Date(rem.dueDate) < new Date();
+                    const isOverdue = !rem.completed && new Date(rem.due_date) < new Date();
                     return (
                       <div key={rem.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                         <div className="flex items-start gap-3 min-w-0">
@@ -286,7 +287,7 @@ export default function ContactDetailPage() {
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <Clock className="w-3 h-3 text-slate-400" />
                               <span className={`text-[10px] ${isOverdue ? 'text-red-600 font-semibold' : 'text-slate-400'}`}>
-                                Due: {formatDate(rem.dueDate)} {isOverdue && '(Overdue)'}
+                                Due: {formatDate(rem.due_date)} {isOverdue && '(Overdue)'}
                               </span>
                             </div>
                           </div>

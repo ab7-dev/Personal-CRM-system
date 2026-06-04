@@ -70,7 +70,7 @@ export default function ContactCard({ contact, onDeleteClick }: ContactCardProps
 
           <div className="flex items-center gap-2">
             <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span>Last contacted: {formatDate(contact.lastContactedAt)}</span>
+            <span>Last contacted: {formatDate(contact.last_contacted_at)}</span>
           </div>
         </div>
       </div>

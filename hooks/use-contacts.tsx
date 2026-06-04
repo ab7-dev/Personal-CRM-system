@@ -7,12 +7,12 @@ interface CRMContextType {
   contacts: Contact[];
   interactions: Interaction[];
   reminders: Reminder[];
-  addContact: (contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateContact: (id: string, contact: Partial<Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>>) => void;
+  addContact: (contact: Omit<Contact, "id" | "created_at" | "updated_at" | "user_id">) => void;
+  updateContact: (id: string, contact: Partial<Omit<Contact, "id" | "created_at" | "updated_at" | "user_id">>) => void;
   deleteContact: (id: string) => void;
-  addInteraction: (interaction: Omit<Interaction, 'id'>) => void;
+  addInteraction: (interaction: Omit<Interaction, 'id' | 'user_id' | 'created_at'>) => void;
   deleteInteraction: (id: string) => void;
-  addReminder: (reminder: Omit<Reminder, 'id' | 'completed'>) => void;
+  addReminder: (reminder: Omit<Reminder, 'id' | 'completed' | 'user_id' | 'created_at'>) => void;
   toggleReminder: (id: string) => void;
   deleteReminder: (id: string) => void;
   stats: DashboardStats;
@@ -24,6 +24,7 @@ const CRMContext = createContext<CRMContextType | undefined>(undefined);
 const MOCK_CONTACTS: Contact[] = [
   {
     id: 'c1',
+    user_id: 'local',
     name: 'Sarah Connor',
     email: 'sarah.connor@cyberdyne.io',
     phone: '+1 (555) 019-2831',
@@ -31,12 +32,13 @@ const MOCK_CONTACTS: Contact[] = [
     role: 'Lead Architect',
     status: 'active',
     notes: 'Key contact for the automated data scraping integration. Interested in scaling up APIs.',
-    lastContactedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    last_contacted_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 'c2',
+    user_id: 'local',
     name: 'Alex Rivera',
     email: 'alex@linear.app',
     phone: '+1 (555) 234-5678',
@@ -44,12 +46,13 @@ const MOCK_CONTACTS: Contact[] = [
     role: 'Product Designer',
     status: 'active',
     notes: 'Met at Design Systems Conference. Discussed Attio-like layouts and micro-interactions.',
-    lastContactedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    last_contacted_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 'c3',
+    user_id: 'local',
     name: 'Emma Watson',
     email: 'emma@attio.com',
     phone: '+44 20 7946 0958',
@@ -57,12 +60,13 @@ const MOCK_CONTACTS: Contact[] = [
     role: 'Growth Lead',
     status: 'lead',
     notes: 'Potential advisor for personal relationship CRM. Follow up in June.',
-    lastContactedAt: undefined,
-    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    last_contacted_at: undefined,
+    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 'c4',
+    user_id: 'local',
     name: 'John Doe',
     email: 'john.doe@acme.org',
     phone: '+1 (555) 987-6543',
@@ -70,66 +74,80 @@ const MOCK_CONTACTS: Contact[] = [
     role: 'VP Sales',
     status: 'inactive',
     notes: 'Account on hold due to budget restrictions. Re-engage in Q4.',
-    lastContactedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), // 45 days ago
-    createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+    last_contacted_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
 const MOCK_INTERACTIONS: Interaction[] = [
   {
     id: 'i1',
-    contactId: 'c1',
+    contact_id: 'c1',
+    user_id: 'local',
     type: 'meeting',
     description: 'Detailed API migration strategy session.',
     date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     notes: 'Agreed to test the new Node SDK. Showed deep interest in parallel scraping options.',
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 'i2',
-    contactId: 'c2',
+    contact_id: 'c2',
+    user_id: 'local',
     type: 'email',
     description: 'Sent follow-up on dashboard layout aesthetics.',
     date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     notes: 'Shared screenshots of the Firecrawl-inspired dashboard. He loved the minimal grid lines.',
+    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 'i3',
-    contactId: 'c4',
+    contact_id: 'c4',
+    user_id: 'local',
     type: 'call',
     description: 'Quarterly review call regarding sales pipelines.',
     date: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
 const MOCK_REMINDERS: Reminder[] = [
   {
     id: 'r1',
-    contactId: 'c1',
+    contact_id: 'c1',
+    user_id: 'local',
     title: 'Send updated pricing sheet for Cyberdyne scaling',
-    dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days in future
+    due_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
     completed: false,
+    created_at: new Date().toISOString(),
   },
   {
     id: 'r2',
-    contactId: 'c3',
+    contact_id: 'c3',
+    user_id: 'local',
     title: 'Introductory call with Emma Watson',
-    dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days in future
+    due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     completed: false,
+    created_at: new Date().toISOString(),
   },
   {
     id: 'r3',
-    contactId: 'c2',
+    contact_id: 'c2',
+    user_id: 'local',
     title: 'Ask for feedback on design prototype',
-    dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day overdue
+    due_date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     completed: false,
+    created_at: new Date().toISOString(),
   },
   {
     id: 'r4',
-    contactId: 'c1',
+    contact_id: 'c1',
+    user_id: 'local',
     title: 'Set up playground credentials',
-    dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // completed
+    due_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     completed: true,
+    created_at: new Date().toISOString(),
   },
 ];
 
@@ -186,23 +204,24 @@ export function CRMProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('crm_reminders', JSON.stringify(updated));
   };
 
-  const addContact = (contactInput: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addContact = (contactInput: Omit<Contact, "id" | "created_at" | "updated_at" | "user_id">) => {
     const newContact: Contact = {
       ...contactInput,
       id: 'c_' + Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      user_id: 'local',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     saveContacts([newContact, ...contacts]);
   };
 
-  const updateContact = (id: string, contactInput: Partial<Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>>) => {
+  const updateContact = (id: string, contactInput: Partial<Omit<Contact, "id" | "created_at" | "updated_at" | "user_id">>) => {
     const updated = contacts.map(c => {
       if (c.id === id) {
         return {
           ...c,
           ...contactInput,
-          updatedAt: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
       }
       return c;
@@ -213,20 +232,22 @@ export function CRMProvider({ children }: { children: React.ReactNode }) {
   const deleteContact = (id: string) => {
     saveContacts(contacts.filter(c => c.id !== id));
     // Cascade delete interactions & reminders
-    saveInteractions(interactions.filter(i => i.contactId !== id));
-    saveReminders(reminders.filter(r => r.contactId !== id));
+    saveInteractions(interactions.filter(i => i.contact_id !== id));
+    saveReminders(reminders.filter(r => r.contact_id !== id));
   };
 
-  const addInteraction = (interactionInput: Omit<Interaction, 'id'>) => {
+  const addInteraction = (interactionInput: Omit<Interaction, 'id' | 'user_id' | 'created_at'>) => {
     const newInteraction: Interaction = {
       ...interactionInput,
       id: 'i_' + Math.random().toString(36).substr(2, 9),
+      user_id: 'local',
+      created_at: new Date().toISOString(),
     };
     saveInteractions([newInteraction, ...interactions]);
 
-    // Update the contact lastContactedAt field
-    updateContact(interactionInput.contactId, {
-      lastContactedAt: interactionInput.date,
+    // Update the contact last_contacted_at field
+    updateContact(interactionInput.contact_id, {
+      last_contacted_at: interactionInput.date,
     });
   };
 
@@ -234,10 +255,12 @@ export function CRMProvider({ children }: { children: React.ReactNode }) {
     saveInteractions(interactions.filter(i => i.id !== id));
   };
 
-  const addReminder = (reminderInput: Omit<Reminder, 'id' | 'completed'>) => {
+  const addReminder = (reminderInput: Omit<Reminder, 'id' | 'completed' | 'user_id' | 'created_at'>) => {
     const newReminder: Reminder = {
       ...reminderInput,
       id: 'r_' + Math.random().toString(36).substr(2, 9),
+      user_id: 'local',
+      created_at: new Date().toISOString(),
       completed: false,
     };
     saveReminders([newReminder, ...reminders]);
@@ -261,8 +284,8 @@ export function CRMProvider({ children }: { children: React.ReactNode }) {
   const now = new Date();
   const stats: DashboardStats = {
     totalContacts: contacts.length,
-    upcomingFollowUps: reminders.filter(r => !r.completed && new Date(r.dueDate) >= now).length,
-    overdueFollowUps: reminders.filter(r => !r.completed && new Date(r.dueDate) < now).length,
+    upcomingFollowUps: reminders.filter(r => !r.completed && new Date(r.due_date) >= now).length,
+    overdueFollowUps: reminders.filter(r => !r.completed && new Date(r.due_date) < now).length,
     recentInteractions: interactions.filter(i => {
       const diffTime = Math.abs(now.getTime() - new Date(i.date).getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));

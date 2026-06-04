@@ -2,6 +2,7 @@ export type ContactStatus = 'lead' | 'active' | 'inactive';
 
 export interface Contact {
   id: string;
+  user_id: string;
   name: string;
   email: string;
   phone?: string;
@@ -9,28 +10,32 @@ export interface Contact {
   role?: string;
   status: ContactStatus;
   notes?: string;
-  lastContactedAt?: string; // ISO date string
-  createdAt: string;
-  updatedAt: string;
+  last_contacted_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export type InteractionType = 'call' | 'email' | 'meeting' | 'other';
 
 export interface Interaction {
   id: string;
-  contactId: string;
+  contact_id: string;
+  user_id: string;
   type: InteractionType;
   description: string;
-  date: string; // ISO date string
   notes?: string;
+  date: string;
+  created_at: string;
 }
 
 export interface Reminder {
   id: string;
-  contactId: string;
+  contact_id: string;
+  user_id: string;
   title: string;
-  dueDate: string; // ISO date string
+  due_date: string;
   completed: boolean;
+  created_at: string;
 }
 
 export interface DashboardStats {

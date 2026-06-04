@@ -35,13 +35,13 @@ export default function DashboardPage() {
   const activeReminders = reminders.filter(r => !r.completed);
   
   const upcomingReminders = activeReminders
-    .filter(r => new Date(r.dueDate) >= now)
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .filter(r => new Date(r.due_date) >= now)
+    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
     .slice(0, 5);
 
   const overdueReminders = activeReminders
-    .filter(r => new Date(r.dueDate) < now)
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    .filter(r => new Date(r.due_date) < now)
+    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
 
   // Recent interactions
   const sortedInteractions = [...interactions]
@@ -105,7 +105,7 @@ export default function DashboardPage() {
                 </h3>
                 <div className="mt-3 space-y-2.5">
                   {overdueReminders.map((reminder) => {
-                    const contact = contacts.find(c => c.id === reminder.contactId);
+                    const contact = contacts.find(c => c.id === reminder.contact_id);
                     return (
                       <div 
                         key={reminder.id}
@@ -121,7 +121,7 @@ export default function DashboardPage() {
                           <div>
                             <span className="text-xs font-semibold text-slate-900">{reminder.title}</span>
                             <p className="text-[10px] text-red-600 mt-0.5 font-medium">
-                              Due: {formatDate(reminder.dueDate)}
+                              Due: {formatDate(reminder.due_date)}
                             </p>
                           </div>
                         </div>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="divide-y divide-slate-100">
                   {upcomingReminders.map((reminder) => {
-                    const contact = contacts.find(c => c.id === reminder.contactId);
+                    const contact = contacts.find(c => c.id === reminder.contact_id);
                     return (
                       <div key={reminder.id} className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0">
                         <div className="flex items-start gap-3 min-w-0">
@@ -172,7 +172,7 @@ export default function DashboardPage() {
                               {reminder.title}
                             </span>
                             <p className="text-[10px] text-slate-400 mt-0.5">
-                              Due: {formatDate(reminder.dueDate)}
+                              Due: {formatDate(reminder.due_date)}
                             </p>
                           </div>
                         </div>
@@ -210,7 +210,7 @@ export default function DashboardPage() {
             ) : (
               <div className="relative border-l border-slate-100 pl-4 space-y-6 my-auto py-2">
                 {sortedInteractions.map((int) => {
-                  const contact = contacts.find(c => c.id === int.contactId);
+                  const contact = contacts.find(c => c.id === int.contact_id);
 
                   return (
                     <div key={int.id} className="relative">
