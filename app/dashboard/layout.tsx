@@ -1,27 +1,34 @@
 'use client';
 
 import React from 'react';
-import { useCRM } from '@/hooks/use-contacts';
+import { createClient } from '@/lib/supabase/client';
 import Sidebar from '@/components/sidebar';
 import { Search, X, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import type { Contact } from '@/types';
 
 function SearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { contacts } = useCRM();
+  const supabase = createClient();
+  const [contacts, setContacts] = React.useState<Contact[]>([]);
   const [query, setQuery] = React.useState('');
+
+  React.useEffect(() => {
+    if (isOpen && contacts.length === 0) {
+      supabase.from('contacts').select('*').order('name').then(({ data }) => {
+        setContacts((data as Contact[]) || []);
+      });
+    }
+  }, [isOpen]);
+
   const router = useRouter();
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        if (isOpen) onClose();
-        else onClose(); // toggle
-      }
+      if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [onClose]);
 
   if (!isOpen) return null;
 

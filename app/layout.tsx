@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { CRMProvider } from "@/hooks/use-contacts";
 
 export const metadata: Metadata = {
   title: "Personal CRM Monitor",
@@ -15,9 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased bg-background text-foreground">
-        <CRMProvider>
-          {children}
-        </CRMProvider>
+        {children}
       </body>
     </html>
   );

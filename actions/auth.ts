@@ -72,7 +72,7 @@ export async function resetPassword(formData: FormData) {
   const supabase = await createClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://crm-nine-nu-15.vercel.app'}/auth/reset-password`,
   });
 
   if (error) return { error: error.message };
