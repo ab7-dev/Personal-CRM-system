@@ -24,6 +24,7 @@ export async function signUp(formData: FormData) {
     password: parsed.data.password,
     options: {
       data: { full_name: parsed.data.name },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://crm-nine-nu-15.vercel.app'}/auth/confirm`,
     },
   });
 

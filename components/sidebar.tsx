@@ -9,13 +9,13 @@ import {
   History, 
   Settings, 
   Search, 
-  ChevronRight, 
   ChevronDown, 
-  User, 
   ArrowLeft, 
   LogOut 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/client';
+import { signOut } from '@/actions/auth';
 
 interface SidebarProps {
   className?: string;
@@ -25,6 +25,39 @@ interface SidebarProps {
 export default function Sidebar({ className, onSearchClick }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = React.useState(false);
+  const [user, setUser] = React.useState<{ name: string; email: string } | null>(null);
+  const [currentHash, setCurrentHash] = React.useState('');
+
+  React.useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUser({
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+          email: user.email || '',
+        });
+      }
+    });
+
+    // Set initial hash
+    setCurrentHash(window.location.hash);
+
+    const handleHashChange = () => {
+      setCurrentHash(window.location.hash);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   const navigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
@@ -32,6 +65,10 @@ export default function Sidebar({ className, onSearchClick }: SidebarProps) {
     { name: 'Activity Logs', href: '/dashboard#activity', icon: History },
     { name: 'Settings', href: '/dashboard#settings', icon: Settings },
   ];
+
+  const userInitials = user?.name
+    ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+    : 'U';
 
   return (
     <div 
@@ -87,7 +124,15 @@ export default function Sidebar({ className, onSearchClick }: SidebarProps) {
       {/* Navigation Items */}
       <nav className="flex-1 px-2 space-y-1">
         {navigation.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href));
+          const isOverview = item.href === '/dashboard';
+          const isHashMatch = item.href.includes('#') && currentHash === item.href.substring(item.href.indexOf('#'));
+          const isActive = isOverview 
+            ? (pathname === '/dashboard' && !currentHash) 
+            : (item.href.includes('#') 
+                ? (pathname === '/dashboard' && isHashMatch) 
+                : (pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href)))
+              );
+
           const Icon = item.icon;
 
           return (
@@ -110,18 +155,18 @@ export default function Sidebar({ className, onSearchClick }: SidebarProps) {
 
       {/* User Info / Collapse Section */}
       <div className="p-3 border-t border-slate-100 space-y-2">
-        {!collapsed && (
+        {!collapsed && user && (
           <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-100">
             <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-medium shrink-0">
-              U
+              {userInitials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-slate-900 truncate">Alex Developer</p>
-              <p className="text-[10px] text-slate-500 truncate">alex@example.com</p>
+              <p className="text-xs font-semibold text-slate-900 truncate">{user.name}</p>
+              <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
             </div>
-            <Link href="/login" className="text-slate-400 hover:text-slate-600 shrink-0">
+            <button onClick={handleSignOut} className="text-slate-400 hover:text-slate-600 shrink-0 cursor-pointer">
               <LogOut className="w-3.5 h-3.5" />
-            </Link>
+            </button>
           </div>
         )}
 
