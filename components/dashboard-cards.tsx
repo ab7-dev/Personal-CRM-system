@@ -50,7 +50,8 @@ export default function DashboardCards({ stats }: DashboardCardsProps) {
         return (
           <div 
             key={idx}
-            className="group relative p-6 bg-white border border-slate-200 rounded-xl hover:border-purple-300 transition-all shadow-sm hover:shadow-md overflow-hidden"
+            style={{ '--stagger': idx } as React.CSSProperties}
+            className="animate-fade-in-up hover-lift group relative p-6 bg-white border border-slate-200 rounded-xl overflow-hidden"
           >
             {/* Top accent highlight */}
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-slate-100 group-hover:bg-purple-600 transition-colors" />

@@ -52,7 +52,7 @@ export default function InteractionForm({ isOpen, onClose, onSubmit, contactName
       />
 
       {/* Form Container */}
-      <div className="relative w-full max-w-md p-6 bg-white border border-slate-200 rounded-xl shadow-xl z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md p-6 bg-white border border-slate-200 rounded-xl shadow-xl z-10 animate-scale-in">
         <button 
           onClick={onClose}
           className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition"
@@ -136,13 +136,13 @@ export default function InteractionForm({ isOpen, onClose, onSubmit, contactName
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition"
+              className="btn-press px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-lg shadow-sm transition"
+              className="btn-press px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 rounded-lg shadow-sm shadow-purple-500/20"
             >
               Log Interaction
             </button>

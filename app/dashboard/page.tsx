@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/navbar';
 import DashboardCards from '@/components/dashboard-cards';
 import ContactForm from '@/components/contact-form';
@@ -21,17 +22,29 @@ import {
   ShieldCheck,
   Database,
   LogOut,
-  Trash2
+  Trash2,
+  BellRing,
+  CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
 import { ContactFormValues } from '@/validations';
 import type { Contact, Interaction, Reminder, DashboardStats } from '@/types';
 import { signOut } from '@/actions/auth';
 
-export default function DashboardPage() {
-  const supabase = createClient();
+type TabKey = 'overview' | 'activity' | 'settings' | 'reminders';
 
-  const [activeTab, setActiveTab]       = React.useState<'overview' | 'activity' | 'settings'>('overview');
+const TAB_TITLES: Record<TabKey, string> = {
+  overview: 'Dashboard',
+  activity: 'Activity Logs',
+  settings: 'Settings',
+  reminders: 'Reminders',
+};
+
+function DashboardContent() {
+  const supabase = createClient();
+  const searchParams = useSearchParams();
+  const activeTab: TabKey = (searchParams.get('tab') as TabKey) || 'overview';
+
   const [contacts, setContacts]         = React.useState<Contact[]>([]);
   const [interactions, setInteractions] = React.useState<Interaction[]>([]);
   const [allInteractions, setAllInteractions] = React.useState<Interaction[]>([]);
@@ -45,27 +58,8 @@ export default function DashboardPage() {
   const [contactFormOpen, setContactFormOpen] = React.useState(false);
 
   React.useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      if (hash === '#activity') {
-        setActiveTab('activity');
-      } else if (hash === '#settings') {
-        setActiveTab('settings');
-      } else {
-        setActiveTab('overview');
-      }
-    };
-
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    window.addEventListener('popstate', handleHashChange);
-
     loadAll();
-
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-      window.removeEventListener('popstate', handleHashChange);
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadAll() {
@@ -94,7 +88,8 @@ export default function DashboardPage() {
       supabase.from('contacts').select('*').order('created_at', { ascending: false }),
       supabase.from('interactions').select('*').order('date', { ascending: false }).limit(5),
       supabase.from('interactions').select('*').order('date', { ascending: false }),
-      supabase.from('reminders').select('*').eq('completed', false).order('due_date', { ascending: true }),
+      // Fetch ALL reminders (not just incomplete) so the Reminders tab can show full history
+      supabase.from('reminders').select('*').order('due_date', { ascending: true }),
       supabase.from('contacts').select('*', { count: 'exact', head: true }),
       supabase.from('reminders').select('*', { count: 'exact', head: true }).eq('completed', false).gte('due_date', now),
       supabase.from('reminders').select('*', { count: 'exact', head: true }).eq('completed', false).lt('due_date', now),
@@ -116,7 +111,6 @@ export default function DashboardPage() {
 
   async function toggleReminder(id: string, currentCompleted: boolean) {
     await supabase.from('reminders').update({ completed: !currentCompleted }).eq('id', id);
-    setReminders(prev => prev.filter(r => r.id !== id));
     await loadAll();
   }
 
@@ -134,13 +128,19 @@ export default function DashboardPage() {
   }
 
   const now = new Date();
-  const overdueReminders  = reminders.filter(r => new Date(r.due_date) < now).slice(0, 5);
-  const upcomingReminders = reminders.filter(r => new Date(r.due_date) >= now).slice(0, 5);
+  const incompleteReminders = reminders.filter(r => !r.completed);
+  const overdueReminders  = incompleteReminders.filter(r => new Date(r.due_date) < now).slice(0, 5);
+  const upcomingReminders = incompleteReminders.filter(r => new Date(r.due_date) >= now).slice(0, 5);
+
+  // Full sorted lists for the Reminders tab
+  const allOverdue   = incompleteReminders.filter(r => new Date(r.due_date) < now).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+  const allUpcoming  = incompleteReminders.filter(r => new Date(r.due_date) >= now).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+  const allCompleted = reminders.filter(r => r.completed).sort((a, b) => new Date(b.due_date).getTime() - new Date(a.due_date).getTime());
 
   return (
     <div className="flex-1 pb-10">
       <Navbar
-        title={activeTab === 'overview' ? 'Dashboard' : activeTab === 'activity' ? 'Activity Logs' : 'Settings'}
+        title={TAB_TITLES[activeTab]}
         actionButton={activeTab === 'overview' ? { label: 'Add Contact', onClick: () => setContactFormOpen(true) } : undefined}
       />
 
@@ -153,7 +153,7 @@ export default function DashboardPage() {
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 {/* Welcome Banner */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 rounded-xl border border-slate-700 shadow-sm relative overflow-hidden">
+                <div className="animate-fade-in-up flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-900 to-purple-950 text-white p-6 rounded-xl border border-slate-700 shadow-sm relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
                     <TrendingUp className="w-48 h-48 text-purple-400" />
                   </div>
@@ -165,7 +165,7 @@ export default function DashboardPage() {
                   </div>
                   <button
                     onClick={() => setContactFormOpen(true)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-purple-700 bg-white hover:bg-purple-50 rounded-lg transition self-start md:self-center"
+                    className="btn-press flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-purple-700 bg-white hover:bg-purple-50 rounded-lg self-start md:self-center shadow-sm"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     <span>Add Contact</span>
@@ -179,7 +179,7 @@ export default function DashboardPage() {
                   {/* Reminders Panel */}
                   <div className="lg:col-span-2 space-y-6">
                     {overdueReminders.length > 0 && (
-                      <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+                      <div className="animate-fade-in-up bg-red-50 border border-red-200 rounded-xl p-5">
                         <h3 className="text-sm font-bold text-red-800 flex items-center gap-2">
                           <Clock className="w-4 h-4 text-red-600 animate-pulse" />
                           Action Required: {overdueReminders.length} Overdue Follow-Ups
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                             return (
                               <div key={reminder.id} className="flex items-center justify-between p-3 bg-white border border-red-100 rounded-lg shadow-sm">
                                 <div className="flex items-center gap-3">
-                                  <button onClick={() => toggleReminder(reminder.id, reminder.completed)} className="text-red-400 hover:text-red-600 transition">
+                                  <button onClick={() => toggleReminder(reminder.id, reminder.completed)} className="btn-press text-red-400 hover:text-red-600">
                                     <Square className="w-4 h-4" />
                                   </button>
                                   <div>
@@ -210,7 +210,7 @@ export default function DashboardPage() {
                       </div>
                     )}
 
-                    <div className="bg-white border border-slate-200 rounded-xl p-6">
+                    <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-6" style={{ '--stagger': 1 } as React.CSSProperties}>
                       <div className="flex items-center justify-between mb-4">
                         <div>
                           <h3 className="text-sm font-bold text-slate-900">Upcoming Reminders</h3>
@@ -229,7 +229,7 @@ export default function DashboardPage() {
                             return (
                               <div key={reminder.id} className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0">
                                 <div className="flex items-start gap-3 min-w-0">
-                                  <button onClick={() => toggleReminder(reminder.id, reminder.completed)} className="text-slate-400 hover:text-purple-600 transition mt-0.5 shrink-0">
+                                  <button onClick={() => toggleReminder(reminder.id, reminder.completed)} className="btn-press text-slate-400 hover:text-purple-600 mt-0.5 shrink-0">
                                     {reminder.completed ? <CheckSquare className="w-4 h-4 text-purple-500" /> : <Square className="w-4 h-4" />}
                                   </button>
                                   <div className="min-w-0">
@@ -251,7 +251,7 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Recent Interactions Summary */}
-                  <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col">
+                  <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-6 flex flex-col" style={{ '--stagger': 2 } as React.CSSProperties}>
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="text-sm font-bold text-slate-900">Recent Interactions</h3>
@@ -288,7 +288,7 @@ export default function DashboardPage() {
                       </div>
                     )}
                     <div className="border-t border-slate-100 pt-4 mt-auto">
-                      <Link href="/contacts" className="flex items-center justify-center gap-1 w-full text-xs font-semibold text-slate-600 hover:text-purple-600 transition">
+                      <Link href="/contacts" className="btn-press flex items-center justify-center gap-1 w-full text-xs font-semibold text-slate-600 hover:text-purple-600">
                         <span>Manage Contacts</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
@@ -298,9 +298,130 @@ export default function DashboardPage() {
               </div>
             )}
 
+            {/* Reminders Tab Content */}
+            {activeTab === 'reminders' && (
+              <div className="space-y-6">
+                <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <BellRing className="w-5 h-5 text-purple-600" />
+                    All Reminders
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Every follow-up reminder across all your contacts, grouped by status.</p>
+                </div>
+
+                {/* Overdue */}
+                <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-6" style={{ '--stagger': 1 } as React.CSSProperties}>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-red-600 flex items-center gap-1.5 mb-3">
+                    <Clock className="w-3.5 h-3.5" /> Overdue ({allOverdue.length})
+                  </h4>
+                  {allOverdue.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-slate-400 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
+                      Nothing overdue. You&apos;re all caught up!
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {allOverdue.map((reminder, idx) => {
+                        const contact = contacts.find(c => c.id === reminder.contact_id);
+                        return (
+                          <div key={reminder.id} style={{ '--stagger': idx } as React.CSSProperties} className="animate-fade-in-up flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <button onClick={() => toggleReminder(reminder.id, reminder.completed)} className="btn-press text-red-400 hover:text-red-600 mt-0.5 shrink-0">
+                                <Square className="w-4 h-4" />
+                              </button>
+                              <div className="min-w-0">
+                                <span className="text-xs font-medium text-slate-900 leading-snug break-words">{reminder.title}</span>
+                                <p className="text-[10px] text-red-600 mt-0.5 font-medium">Due: {formatDate(reminder.due_date)}</p>
+                              </div>
+                            </div>
+                            {contact && (
+                              <Link href={`/contacts/${contact.id}`} className="text-[10px] font-semibold text-purple-600 hover:text-purple-700 px-2 py-1 rounded shrink-0 ml-4">
+                                {contact.name}
+                              </Link>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Upcoming */}
+                <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-6" style={{ '--stagger': 2 } as React.CSSProperties}>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-blue-600 flex items-center gap-1.5 mb-3">
+                    <Calendar className="w-3.5 h-3.5" /> Upcoming ({allUpcoming.length})
+                  </h4>
+                  {allUpcoming.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-slate-400 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
+                      No upcoming reminders scheduled.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {allUpcoming.map((reminder, idx) => {
+                        const contact = contacts.find(c => c.id === reminder.contact_id);
+                        return (
+                          <div key={reminder.id} style={{ '--stagger': idx } as React.CSSProperties} className="animate-fade-in-up flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <button onClick={() => toggleReminder(reminder.id, reminder.completed)} className="btn-press text-slate-400 hover:text-purple-600 mt-0.5 shrink-0">
+                                <Square className="w-4 h-4" />
+                              </button>
+                              <div className="min-w-0">
+                                <span className="text-xs font-medium text-slate-900 leading-snug break-words">{reminder.title}</span>
+                                <p className="text-[10px] text-slate-400 mt-0.5">Due: {formatDate(reminder.due_date)}</p>
+                              </div>
+                            </div>
+                            {contact && (
+                              <Link href={`/contacts/${contact.id}`} className="text-[10px] font-semibold text-purple-600 hover:text-purple-700 px-2 py-1 rounded shrink-0 ml-4">
+                                {contact.name}
+                              </Link>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Completed */}
+                <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-6" style={{ '--stagger': 3 } as React.CSSProperties}>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1.5 mb-3">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Completed ({allCompleted.length})
+                  </h4>
+                  {allCompleted.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-slate-400 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
+                      No completed reminders yet.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {allCompleted.slice(0, 20).map(reminder => {
+                        const contact = contacts.find(c => c.id === reminder.contact_id);
+                        return (
+                          <div key={reminder.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0 opacity-70">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <button onClick={() => toggleReminder(reminder.id, reminder.completed)} className="btn-press text-purple-500 hover:text-slate-400 mt-0.5 shrink-0">
+                                <CheckSquare className="w-4 h-4" />
+                              </button>
+                              <div className="min-w-0">
+                                <span className="text-xs font-medium text-slate-500 leading-snug break-words line-through">{reminder.title}</span>
+                                <p className="text-[10px] text-slate-400 mt-0.5">Was due: {formatDate(reminder.due_date)}</p>
+                              </div>
+                            </div>
+                            {contact && (
+                              <Link href={`/contacts/${contact.id}`} className="text-[10px] font-semibold text-slate-400 hover:text-purple-600 px-2 py-1 rounded shrink-0 ml-4">
+                                {contact.name}
+                              </Link>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Activity Logs Tab Content */}
             {activeTab === 'activity' && (
-              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+              <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
                 <div>
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <History className="w-5 h-5 text-purple-600" />
@@ -341,7 +462,7 @@ export default function DashboardPage() {
                               </div>
                               <button
                                 onClick={() => handleDeleteInteraction(int.id)}
-                                className="text-slate-400 hover:text-red-600 transition shrink-0 p-1 cursor-pointer opacity-0 group-hover:opacity-100"
+                                className="btn-press text-slate-400 hover:text-red-600 shrink-0 p-1 cursor-pointer opacity-0 group-hover:opacity-100"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -375,7 +496,7 @@ export default function DashboardPage() {
             {activeTab === 'settings' && (
               <div className="grid gap-6 md:grid-cols-2">
                 {/* Account Details Card */}
-                <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6 relative overflow-hidden">
+                <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6 relative overflow-hidden">
                   <div className="absolute top-0 left-0 right-0 h-1 bg-purple-600" />
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -413,7 +534,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* System & Connection Status */}
-                <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden" style={{ '--stagger': 1 } as React.CSSProperties}>
                   <div className="absolute top-0 left-0 right-0 h-1 bg-purple-600" />
                   <div className="space-y-6">
                     <div>
@@ -447,8 +568,8 @@ export default function DashboardPage() {
 
                   <div className="pt-6 border-t border-slate-100 mt-6">
                     <button
-                      onClick={signOut}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100/70 border border-red-100 rounded-lg shadow-sm transition cursor-pointer"
+                      onClick={() => signOut()}
+                      className="btn-press w-full flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100/70 border border-red-100 rounded-lg shadow-sm cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>Log Out of CRM</span>
@@ -467,5 +588,13 @@ export default function DashboardPage() {
         onSubmit={handleContactSubmit}
       />
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-20 text-slate-400 text-sm">Loading details...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }

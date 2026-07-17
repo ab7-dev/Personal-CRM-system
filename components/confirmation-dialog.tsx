@@ -35,10 +35,10 @@ export default function ConfirmationDialog({
       />
 
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-md p-6 bg-white border border-slate-200 rounded-xl shadow-xl z-10 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md p-6 bg-white border border-slate-200 rounded-xl shadow-xl z-10 overflow-hidden animate-scale-in">
         <button 
           onClick={onCancel}
-          className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition"
+          className="btn-press absolute right-4 top-4 text-slate-400 hover:text-slate-600"
         >
           <X className="w-4 h-4" />
         </button>
@@ -57,16 +57,16 @@ export default function ConfirmationDialog({
         <div className="mt-6 flex items-center justify-end gap-2">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition"
+            className="btn-press px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg"
           >
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
-            className={`px-4 py-2 text-xs font-semibold text-white rounded-lg shadow-sm transition ${
+            className={`btn-press px-4 py-2 text-xs font-semibold text-white rounded-lg shadow-sm ${
               isDestructive 
                 ? 'bg-red-600 hover:bg-red-700' 
-                : 'bg-purple-600 hover:bg-purple-700'
+                : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500'
             }`}
           >
             {confirmLabel}

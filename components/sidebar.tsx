@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { 
   LayoutDashboard, 
   Users, 
@@ -11,7 +11,8 @@ import {
   Search, 
   ChevronDown, 
   ArrowLeft, 
-  LogOut 
+  LogOut,
+  BellRing
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
@@ -24,9 +25,10 @@ interface SidebarProps {
 
 export default function Sidebar({ className, onSearchClick }: SidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab');
   const [collapsed, setCollapsed] = React.useState(false);
   const [user, setUser] = React.useState<{ name: string; email: string } | null>(null);
-  const [currentHash, setCurrentHash] = React.useState('');
 
   React.useEffect(() => {
     const supabase = createClient();
@@ -38,21 +40,6 @@ export default function Sidebar({ className, onSearchClick }: SidebarProps) {
         });
       }
     });
-
-    // Set initial hash
-    setCurrentHash(window.location.hash);
-
-    const handleHashChange = () => {
-      setCurrentHash(window.location.hash);
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    window.addEventListener('popstate', handleHashChange);
-
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-      window.removeEventListener('popstate', handleHashChange);
-    };
   }, []);
 
   const handleSignOut = async () => {
@@ -60,10 +47,11 @@ export default function Sidebar({ className, onSearchClick }: SidebarProps) {
   };
 
   const navigation = [
-    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Contacts', href: '/contacts', icon: Users },
-    { name: 'Activity Logs', href: '/dashboard#activity', icon: History },
-    { name: 'Settings', href: '/dashboard#settings', icon: Settings },
+    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, tab: null },
+    { name: 'Contacts', href: '/contacts', icon: Users, tab: null },
+    { name: 'Reminders', href: '/dashboard?tab=reminders', icon: BellRing, tab: 'reminders' },
+    { name: 'Activity Logs', href: '/dashboard?tab=activity', icon: History, tab: 'activity' },
+    { name: 'Settings', href: '/dashboard?tab=settings', icon: Settings, tab: 'settings' },
   ];
 
   const userInitials = user?.name
@@ -101,14 +89,14 @@ export default function Sidebar({ className, onSearchClick }: SidebarProps) {
         {collapsed ? (
           <button 
             onClick={onSearchClick}
-            className="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-400 mx-auto"
+            className="btn-press w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-400 mx-auto"
           >
             <Search className="w-4 h-4" />
           </button>
         ) : (
           <div 
             onClick={onSearchClick}
-            className="flex items-center justify-between w-full px-3 py-2 text-sm text-slate-400 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100/80 transition"
+            className="btn-press flex items-center justify-between w-full px-3 py-2 text-sm text-slate-400 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100/80"
           >
             <div className="flex items-center gap-2">
               <Search className="w-4 h-4 text-slate-400" />
@@ -124,14 +112,11 @@ export default function Sidebar({ className, onSearchClick }: SidebarProps) {
       {/* Navigation Items */}
       <nav className="flex-1 px-2 space-y-1">
         {navigation.map((item) => {
-          const isOverview = item.href === '/dashboard';
-          const isHashMatch = item.href.includes('#') && currentHash === item.href.substring(item.href.indexOf('#'));
-          const isActive = isOverview 
-            ? (pathname === '/dashboard' && !currentHash) 
-            : (item.href.includes('#') 
-                ? (pathname === '/dashboard' && isHashMatch) 
-                : (pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href)))
-              );
+          const isActive = item.tab
+            ? (pathname === '/dashboard' && currentTab === item.tab)
+            : item.href === '/dashboard'
+              ? (pathname === '/dashboard' && !currentTab)
+              : (pathname === item.href || pathname?.startsWith(item.href + '/'));
 
           const Icon = item.icon;
 
@@ -140,7 +125,7 @@ export default function Sidebar({ className, onSearchClick }: SidebarProps) {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
+                "btn-press flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg",
                 isActive 
                   ? "bg-purple-50 text-purple-700 font-semibold" 
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -164,7 +149,7 @@ export default function Sidebar({ className, onSearchClick }: SidebarProps) {
               <p className="text-xs font-semibold text-slate-900 truncate">{user.name}</p>
               <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
             </div>
-            <button onClick={handleSignOut} className="text-slate-400 hover:text-slate-600 shrink-0 cursor-pointer">
+            <button onClick={handleSignOut} className="btn-press text-slate-400 hover:text-slate-600 shrink-0 cursor-pointer">
               <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -173,7 +158,7 @@ export default function Sidebar({ className, onSearchClick }: SidebarProps) {
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            "flex items-center w-full px-3 py-2 text-xs font-medium text-slate-500 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition",
+            "btn-press flex items-center w-full px-3 py-2 text-xs font-medium text-slate-500 rounded-lg hover:bg-slate-50 hover:text-slate-900",
             collapsed ? "justify-center" : "gap-2"
           )}
         >

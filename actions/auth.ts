@@ -19,7 +19,7 @@ export async function signUp(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
@@ -29,6 +29,15 @@ export async function signUp(formData: FormData) {
   });
 
   if (error) return { error: error.message };
+
+  // If Supabase requires email confirmation, signUp succeeds but returns no session.
+  // Redirecting straight to /dashboard in that case would just bounce the user back
+  // to /login via the middleware, with no explanation. Tell them to check their inbox instead.
+  if (!data.session) {
+    return {
+      success: 'Account created! Check your email to confirm your account, then log in.',
+    };
+  }
 
   redirect('/dashboard');
 }

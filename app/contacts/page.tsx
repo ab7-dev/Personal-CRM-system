@@ -87,12 +87,13 @@ export default function ContactsPage() {
           />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredContacts.map(contact => (
-              <ContactCard
-                key={contact.id}
-                contact={contact}
-                onDeleteClick={id => setDeleteId(id)}
-              />
+            {filteredContacts.map((contact, idx) => (
+              <div key={contact.id} style={{ '--stagger': idx } as React.CSSProperties} className="animate-fade-in-up">
+                <ContactCard
+                  contact={contact}
+                  onDeleteClick={id => setDeleteId(id)}
+                />
+              </div>
             ))}
           </div>
         )}

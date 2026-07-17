@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Mail, Phone, Building2, Calendar, UserMinus, ArrowRight } from 'lucide-react';
+import { Mail, Phone, Calendar, ArrowRight } from 'lucide-react';
 import { Contact } from '@/types';
 import { cn, formatDate } from '@/lib/utils';
 
@@ -19,7 +19,7 @@ export default function ContactCard({ contact, onDeleteClick }: ContactCardProps
   };
 
   return (
-    <div className="group relative bg-white border border-slate-200 hover:border-purple-300 rounded-xl transition-all shadow-sm hover:shadow-md overflow-hidden flex flex-col justify-between">
+    <div className="hover-lift group relative bg-white border border-slate-200 hover:border-purple-300 rounded-xl overflow-hidden flex flex-col justify-between shadow-sm">
       {/* Detail Content */}
       <div className="p-5">
         {/* Name and Status */}
@@ -88,7 +88,7 @@ export default function ContactCard({ contact, onDeleteClick }: ContactCardProps
         {onDeleteClick && (
           <button 
             onClick={() => onDeleteClick(contact.id)}
-            className="text-slate-400 hover:text-red-600 transition"
+            className="btn-press text-slate-400 hover:text-red-600"
           >
             Delete
           </button>
