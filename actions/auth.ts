@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { loginSchema, registerSchema, forgotPasswordSchema } from '@/validations';
+import { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema } from '@/validations';
 
 export async function signUp(formData: FormData) {
   const raw = {
@@ -82,12 +82,31 @@ export async function resetPassword(formData: FormData) {
   const supabase = await createClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://crm-nine-nu-15.vercel.app'}/auth/reset-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://crm-nine-nu-15.vercel.app'}/auth/callback?next=/reset-password`,
   });
 
   if (error) return { error: error.message };
 
   return { success: 'Check your email for a password reset link.' };
+}
+
+export async function updatePassword(formData: FormData) {
+  const raw = {
+    password: formData.get('password') as string,
+    confirmPassword: formData.get('confirmPassword') as string,
+  };
+
+  const parsed = resetPasswordSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+
+  if (error) return { error: error.message };
+
+  redirect('/dashboard');
 }
 
 export async function getSession() {
