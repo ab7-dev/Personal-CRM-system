@@ -48,26 +48,26 @@ export default function LoginPage() {
 
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Address</label>
+            <label htmlFor="login-email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Address</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input type="email" {...register('email')} placeholder="name@example.com"
+              <input id="login-email" type="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? 'login-email-error' : undefined} {...register('email')} placeholder="name@example.com"
                 className="w-full pl-9 pr-3.5 py-2 text-sm bg-white border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:border-purple-600 shadow-sm" />
             </div>
-            {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
+            {errors.email && <p id="login-email-error" className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
           </div>
 
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Password</label>
+              <label htmlFor="login-password" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Password</label>
               <Link href="/forgot-password" className="text-[11px] font-semibold text-purple-600 hover:text-purple-700 hover:underline">Forgot?</Link>
             </div>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input type="password" {...register('password')} placeholder="••••••••"
+              <input id="login-password" type="password" aria-invalid={!!errors.password} aria-describedby={errors.password ? 'login-password-error' : undefined} {...register('password')} placeholder="••••••••"
                 className="w-full pl-9 pr-3.5 py-2 text-sm bg-white border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:border-purple-600 shadow-sm" />
             </div>
-            {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
+            {errors.password && <p id="login-password-error" className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
           </div>
 
           <button type="submit" disabled={isSubmitting}

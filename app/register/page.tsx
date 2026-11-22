@@ -70,43 +70,43 @@ export default function RegisterPage() {
 
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Full Name</label>
+                <label htmlFor="register-name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Full Name</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input type="text" {...register('name')} placeholder="John Doe"
+                  <input id="register-name" type="text" aria-invalid={!!errors.name} aria-describedby={errors.name ? 'register-name-error' : undefined} {...register('name')} placeholder="John Doe"
                     className="w-full pl-9 pr-3.5 py-2 text-sm bg-white border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:border-purple-600 shadow-sm" />
                 </div>
-                {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>}
+                {errors.name && <p id="register-name-error" className="mt-1 text-xs text-red-600">{errors.name.message}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Address</label>
+                <label htmlFor="register-email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Address</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input type="email" {...register('email')} placeholder="name@example.com"
+                  <input id="register-email" type="email" aria-invalid={!!errors.email} aria-describedby={errors.email ? 'register-email-error' : undefined} {...register('email')} placeholder="name@example.com"
                     className="w-full pl-9 pr-3.5 py-2 text-sm bg-white border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:border-purple-600 shadow-sm" />
                 </div>
-                {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
+                {errors.email && <p id="register-email-error" className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password</label>
+                <label htmlFor="register-password" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input type="password" {...register('password')} placeholder="Min. 6 characters"
+                  <input id="register-password" type="password" aria-invalid={!!errors.password} aria-describedby={errors.password ? 'register-password-error' : undefined} {...register('password')} placeholder="Min. 6 characters"
                     className="w-full pl-9 pr-3.5 py-2 text-sm bg-white border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:border-purple-600 shadow-sm" />
                 </div>
-                {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
+                {errors.password && <p id="register-password-error" className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Confirm Password</label>
+                <label htmlFor="register-confirm-password" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Confirm Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input type="password" {...register('confirmPassword')} placeholder="Repeat password"
+                  <input id="register-confirm-password" type="password" aria-invalid={!!errors.confirmPassword} aria-describedby={errors.confirmPassword ? 'register-confirm-password-error' : undefined} {...register('confirmPassword')} placeholder="Repeat password"
                     className="w-full pl-9 pr-3.5 py-2 text-sm bg-white border border-slate-200 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:border-purple-600 shadow-sm" />
                 </div>
-                {errors.confirmPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>}
+                {errors.confirmPassword && <p id="register-confirm-password-error" className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>}
               </div>
 
               <button type="submit" disabled={isSubmitting}

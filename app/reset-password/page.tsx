@@ -61,8 +61,8 @@ export default function ResetPasswordPage() {
             )}
 
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-              <PasswordField label="New password" error={errors.password?.message} register={register('password')} />
-              <PasswordField label="Confirm new password" error={errors.confirmPassword?.message} register={register('confirmPassword')} />
+              <PasswordField id="new-password" label="New password" error={errors.password?.message} register={register('password')} />
+              <PasswordField id="confirm-new-password" label="Confirm new password" error={errors.confirmPassword?.message} register={register('confirmPassword')} />
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -78,25 +78,29 @@ export default function ResetPasswordPage() {
   );
 }
 
-function PasswordField({ label, error, register }: {
+function PasswordField({ id, label, error, register }: {
+  id: string;
   label: string;
   error?: string;
   register: UseFormRegisterReturn;
 }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-700">{label}</label>
+      <label htmlFor={id} className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-700">{label}</label>
       <div className="relative">
         <Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
+          id={id}
           type="password"
+          aria-invalid={!!error}
+          aria-describedby={error ? `${id}-error` : undefined}
           autoComplete="new-password"
           placeholder="Min. 6 characters"
           {...register}
           className="w-full rounded-lg border border-slate-200 bg-white py-2 pr-3.5 pl-9 text-sm shadow-sm placeholder:text-slate-400 focus:border-purple-600 focus:ring-1 focus:ring-purple-600 focus:outline-none"
         />
       </div>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p id={`${id}-error`} className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
   );
 }
