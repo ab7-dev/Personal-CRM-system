@@ -26,21 +26,33 @@ export default function Navbar({ title, actionButton }: NavbarProps) {
 
   const loadDueReminders = React.useCallback(async () => {
     const supabase = createClient();
-    const threeDaysFromNow = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [{ data: reminders }, { data: contacts }] = await Promise.all([
+    // Keep old overdue reminders from filling the list before upcoming follow-ups.
+    const [{ data: overdueReminders }, { data: upcomingReminders }, { data: contacts }] = await Promise.all([
       supabase
         .from('reminders')
         .select('*')
         .eq('completed', false)
+        .lt('due_date', nowIso)
+        .order('due_date', { ascending: false })
+        .limit(4),
+      supabase
+        .from('reminders')
+        .select('*')
+        .eq('completed', false)
+        .gte('due_date', nowIso)
         .lte('due_date', threeDaysFromNow)
         .order('due_date', { ascending: true })
-        .limit(8),
+        .limit(4),
       supabase.from('contacts').select('id, name'),
     ]);
 
     const contactMap = new Map((contacts as Pick<Contact, 'id' | 'name'>[] || []).map(c => [c.id, c.name]));
-    const withNames: DueReminder[] = ((reminders as Reminder[]) || []).map(r => ({
+    const reminders = [...(overdueReminders as Reminder[] || []), ...(upcomingReminders as Reminder[] || [])];
+    const withNames: DueReminder[] = reminders.map(r => ({
       ...r,
       contactName: contactMap.get(r.contact_id),
     }));
