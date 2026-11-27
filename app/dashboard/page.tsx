@@ -43,7 +43,10 @@ const TAB_TITLES: Record<TabKey, string> = {
 function DashboardContent() {
   const supabase = createClient();
   const searchParams = useSearchParams();
-  const activeTab: TabKey = (searchParams.get('tab') as TabKey) || 'overview';
+  const requestedTab = searchParams.get('tab');
+  const activeTab: TabKey = requestedTab !== null && Object.prototype.hasOwnProperty.call(TAB_TITLES, requestedTab)
+    ? requestedTab as TabKey
+    : 'overview';
 
   const [contacts, setContacts]         = React.useState<Contact[]>([]);
   const [interactions, setInteractions] = React.useState<Interaction[]>([]);
